@@ -22,7 +22,7 @@ for i = 1:nFiles
 end
 
 %datatable
-table = datatable(datalist, nFiles);
+dataTable = datatable(datalist, nFiles, Hz);
 
 %% Definition of the fault codes
 fault = [0 0 0 0 0 0 5 5 5 5 5 5 10 10 10 10 10 10];
