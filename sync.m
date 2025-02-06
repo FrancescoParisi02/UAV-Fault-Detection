@@ -30,10 +30,10 @@ fprintf("Caricamento dati da %s...\n", file);
     VIBE = average_vibe_data(VIBE_0, VIBE_1, VIBE_2);
 
     % Extract and synchronize time data
-    Time = extract_and_sync_time(IMU_0, RCOU, ATT, XKF1_0, VIBE_0, num_motors,ESC_data, Hz);
+    Time = extract_and_sync_time(IMU, RCOU, ATT, XKF1_0, VIBE_0, num_motors,ESC_data, Hz);
 
     % Synchronize data using Zero-Order Hold (ZOH)
-    [IMU, PWM, ESC, ATTITUDE, XKF1, VIBE] = synchronize_data(IMU, PWM, ESC, ATTITUDE, XKF1, VIBE, Time, num_motors, Hz);
+    [IMU, PWM, ESC, ATTITUDE, XKF1, VIBE] = synchronize_data(IMU_0, PWM, ESC, ATTITUDE, XKF1, VIBE, Time, num_motors, Hz);
 
     % Remove takeoff and landing phases
     [IMU, PWM, ESC, ATTITUDE, XKF1, VIBE] = remove_takeoff_landing(IMU, PWM, ESC, ATTITUDE, XKF1, VIBE, num_motors);
@@ -112,7 +112,7 @@ function Time = extract_and_sync_time(IMU_0, RCOU, ATT, XKF1_0, VIBE_0, num_moto
 
     % Generate output time vector
     finishTime = max(structfun(@max, Time));
-    timesout = (0:1/Hz:seconds(finishTime))';
+    timesout = (0:1/Hz:seconds(finishTime))'; % Creates a vector with step size 1/Hz until seconds(finishTime)
     Time.timesout = timesout;
 end
 
