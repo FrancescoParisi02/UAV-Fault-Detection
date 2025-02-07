@@ -30,10 +30,10 @@ fprintf("Caricamento dati da %s...\n", file);
     VIBE = average_vibe_data(VIBE_0, VIBE_1, VIBE_2);
 
     % Extract and synchronize time data
-    Time = extract_and_sync_time(IMU, RCOU, ATT, XKF1_0, VIBE_0, num_motors,ESC_data, Hz);
+    Time = extract_and_sync_time(IMU_0, RCOU, ATT, XKF1_0, VIBE_0, num_motors,ESC_data, Hz);
 
     % Synchronize data using Zero-Order Hold (ZOH)
-    [IMU, PWM, ESC, ATTITUDE, XKF1, VIBE] = synchronize_data(IMU_0, PWM, ESC, ATTITUDE, XKF1, VIBE, Time, num_motors, Hz);
+    [IMU, PWM, ESC, ATTITUDE, XKF1, VIBE] = synchronize_data(IMU, PWM, ESC, ATTITUDE, XKF1, VIBE, Time, num_motors, Hz);
 
     % Remove takeoff and landing phases
     [IMU, PWM, ESC, ATTITUDE, XKF1, VIBE] = remove_takeoff_landing(IMU, PWM, ESC, ATTITUDE, XKF1, VIBE, num_motors);
@@ -215,4 +215,43 @@ function synchronize = save_processed_data(IMU, PWM, ESC, ATTITUDE, XKF1, VIBE)
     synchronize.ATTITUDE = ATTITUDE;
     synchronize.XKF1 = XKF1;
     synchronize.VIBE = VIBE;
+end
+
+function [in1, in2, in3] = compare3(in1, in2, in3)
+
+    % Get common timestamps (columns 2 is TimeUS)
+    common_timestamps = intersect(intersect(in1(:,2), in2(:,2)), in3(:,2));
+
+    % Filter by common timestamps
+    function data = filter_by_timestamp(data, timestamps)
+        data = data(ismember(data(:,2), timestamps), :);
+    end
+
+    in1 = filter_by_timestamp(in1, common_timestamps);
+    in2 = filter_by_timestamp(in2, common_timestamps);
+    in3 = filter_by_timestamp(in3, common_timestamps);
+
+    % Verify synchronization
+    if ~(isequal(in1(:,2), in2(:,2)) && isequal(in1(:,2), in3(:,2)))
+        error("Inputs to be averaged do not share the same timestamps.");
+    end
+end
+
+function [in1, in2] = compare(in1, in2)
+    % Crea un array logico che indica se ogni timestamp in in1 è presente in in2
+    idx_in1 = ismember(in1(:, 2), in2(:, 2));
+    
+    % Rimuove le righe in in1 che non hanno un corrispondente timestamp in in2
+    in1 = in1(idx_in1, :);
+    
+    % Crea un array logico che indica se ogni timestamp in in2 è presente in in1
+    idx_in2 = ismember(in2(:, 2), in1(:, 2));
+    
+    % Rimuove le righe in in2 che non hanno un corrispondente timestamp in in1
+    in2 = in2(idx_in2, :);
+    
+    % Verifica che i timestamp nelle colonne 2 siano uguali
+    if ~isequal(in1(:, 2), in2(:, 2))
+        error("Inputs to be averaged do not share the same timestamps.");
+    end
 end
