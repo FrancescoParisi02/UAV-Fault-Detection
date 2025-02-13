@@ -43,8 +43,12 @@ fault = [0 0 0 0 0 0 5 5 5 5 5 5 10 10 10 10 10 10];
 fault_cat = categorical(fault');
 dataTable.faultCode(:) = fault_cat;
 
+fprintf("Creazione delle feature in corso...")
+
 %% Computation of Diagnostic Feature Designer features
-[feature_Table,data_feature_Table] = diagnosticFeaturesfull(dataTable);
+[feature_Table,data_feature_Table] = diagnosticFeatures(dataTable);
+
+fprintf("Pulizia delle feature...")
 
 %% Clean features by removing NaNs from features
 feature_Table=standardizeMissing(feature_Table,{-Inf,Inf});
@@ -73,5 +77,8 @@ clear all
 load data_feature_Table_zoh.mat
 
 %%
+
+fprintf("Passaggio della tabella di traning al classificatore...")
+
 classificationLearner(feature_Table_Train,'faultCode');
 
