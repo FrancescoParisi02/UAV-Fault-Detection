@@ -17,8 +17,8 @@ fprintf("Caricamento dati da %s...\n", file);
     % Extract PWM data
     PWM = RCOU(:, 11:11 + num_motors - 1);
 
-    % Extract ESC data
-    ESC = extract_esc_data(num_motors, ESC_data);
+    % % Extract ESC data
+    % ESC = extract_esc_data(num_motors, ESC_data);
 
     % Extract attitude data
     ATTITUDE = extract_attitude_data(ATT);
@@ -33,16 +33,16 @@ fprintf("Caricamento dati da %s...\n", file);
     Time = extract_and_sync_time(IMU_0, RCOU, ATT, XKF1_0, VIBE_0, num_motors,ESC_data, Hz);
 
     % Synchronize data using Zero-Order Hold (ZOH)
-    [IMU, PWM, ESC, ATTITUDE, XKF1, VIBE] = synchronize_data(IMU, PWM, ESC, ATTITUDE, XKF1, VIBE, Time, num_motors, Hz);
+    [IMU, PWM, ATTITUDE, XKF1, VIBE] = synchronize_data(IMU, PWM, ATTITUDE, XKF1, VIBE, Time, num_motors, Hz);
 
     % Remove takeoff and landing phases
-    [IMU, PWM, ESC, ATTITUDE, XKF1, VIBE] = remove_takeoff_landing(IMU, PWM, ESC, ATTITUDE, XKF1, VIBE, num_motors);
+    [IMU, PWM, ATTITUDE, XKF1, VIBE] = remove_takeoff_landing(IMU, PWM, ATTITUDE, XKF1, VIBE, num_motors);
 
     % Remove first and last 2 seconds of data
-    [IMU, PWM, ESC, ATTITUDE, XKF1, VIBE] = remove_edges(IMU, PWM, ESC, ATTITUDE, XKF1, VIBE, num_motors, Hz);
+    [IMU, PWM, ATTITUDE, XKF1, VIBE] = remove_edges(IMU, PWM, ATTITUDE, XKF1, VIBE, num_motors, Hz);
 
     % Save the processed data
-    synchronize = save_processed_data(IMU, PWM, ESC, ATTITUDE, XKF1, VIBE);
+    synchronize = save_processed_data(IMU, PWM, ATTITUDE, XKF1, VIBE);
 end
 
 function IMU = average_imu_data(IMU_0, IMU_1, IMU_2)
@@ -55,17 +55,11 @@ function IMU = average_imu_data(IMU_0, IMU_1, IMU_2)
                (IMU_0(:, 9) + IMU_1(:, 9) + IMU_2(:, 9)) / 3];
 end
 
-function ESC = extract_esc_data(num_motors, ESC_data)
-    ESC = struct(); % Inizializza la struttura vuota
-    for k = 1:num_motors
-        ESC.("RPM" + num2str(k-1)) = ESC_data{k}(:, 4);
-        ESC.("CURR" + num2str(k-1)) = ESC_data{k}(:, 7);
-    end
-end
-%     %ESC = struct();
-%     for k=1:num_motors
-%         ESC.("RPM"+num2str(k-1))=eval("ESC_"+num2str(k-1)+"(:,4)");
-%         ESC.("CURR"+num2str(k-1))=eval("ESC_"+num2str(k-1)+"(:,7)");
+% function ESC = extract_esc_data(num_motors, ESC_data)
+%     ESC = struct(); % Inizializza la struttura vuota
+%     for k = 1:num_motors
+%         ESC.("RPM" + num2str(k-1)) = ESC_data{k}(:, 4);
+%         ESC.("CURR" + num2str(k-1)) = ESC_data{k}(:, 7);
 %     end
 % end
 
@@ -98,10 +92,9 @@ end
 function Time = extract_and_sync_time(IMU_0, RCOU, ATT, XKF1_0, VIBE_0, num_motors,ESC_data, Hz)
     Time.IMU = seconds(IMU_0(:, 2) / 1e6);
     Time.PWM = seconds(RCOU(:, 2) / 1e6);
-    for k = 1:num_motors
-        % Time.("ESC" + num2str(k-1)) = seconds(eval("ESC_" + num2str(k-1) + "(:,2)") / 1e6);
-        Time.("ESC" + num2str(k-1)) = seconds(ESC_data{k}(:,2) / 1e6);
-    end
+    % for k = 1:num_motors
+    %     Time.("ESC" + num2str(k-1)) = seconds(ESC_data{k}(:,2) / 1e6);
+    % end
     Time.ATT = seconds(ATT(:, 2) / 1e6);
     Time.XKF1 = seconds(XKF1_0(:, 2) / 1e6);
     Time.VIBE = seconds(VIBE_0(:, 2) / 1e6);
@@ -116,14 +109,14 @@ function Time = extract_and_sync_time(IMU_0, RCOU, ATT, XKF1_0, VIBE_0, num_moto
     Time.timesout = timesout;
 end
 
-function [IMU, PWM, ESC, ATTITUDE, XKF1, VIBE] = synchronize_data(IMU, PWM, ESC, ATTITUDE, XKF1, VIBE, Time, num_motors, Hz)
+function [IMU, PWM, ATTITUDE, XKF1, VIBE] = synchronize_data(IMU, PWM, ATTITUDE, XKF1, VIBE, Time, num_motors, Hz)
     IMU.GYR_sync = ZOHmatrix(IMU.GYR, seconds(Time.IMU), Time.timesout);
     IMU.ACC_sync = ZOHmatrix(IMU.ACC, seconds(Time.IMU), Time.timesout);
     PWM = ZOHmatrix(PWM, seconds(Time.PWM), Time.timesout);
-    for k = 1:num_motors
-        ESC.("RPM" + num2str(k-1) + "_sync") = ZOHmatrix(ESC.("RPM" + num2str(k-1)), seconds(Time.("ESC" + num2str(k-1))), Time.timesout);
-        ESC.("CURR" + num2str(k-1) + "_sync") = ZOHmatrix(ESC.("CURR" + num2str(k-1)), seconds(Time.("ESC" + num2str(k-1))), Time.timesout);
-    end
+    % for k = 1:num_motors
+    %     ESC.("RPM" + num2str(k-1) + "_sync") = ZOHmatrix(ESC.("RPM" + num2str(k-1)), seconds(Time.("ESC" + num2str(k-1))), Time.timesout);
+    %     ESC.("CURR" + num2str(k-1) + "_sync") = ZOHmatrix(ESC.("CURR" + num2str(k-1)), seconds(Time.("ESC" + num2str(k-1))), Time.timesout);
+    % end
     ATTITUDE.ROLL_sync = ZOHmatrix(ATTITUDE.ROLL, seconds(Time.ATT), Time.timesout);
     ATTITUDE.PITCH_sync = ZOHmatrix(ATTITUDE.PITCH, seconds(Time.ATT), Time.timesout);
     ATTITUDE.YAW_sync = ZOHmatrix(ATTITUDE.YAW, seconds(Time.ATT), Time.timesout);
@@ -139,15 +132,15 @@ function [IMU, PWM, ESC, ATTITUDE, XKF1, VIBE] = synchronize_data(IMU, PWM, ESC,
     VIBE.ACC_sync = ZOHmatrix(VIBE.ACC, seconds(Time.VIBE), Time.timesout);
 end
 
-function [IMU, PWM, ESC, ATTITUDE, XKF1, VIBE] = remove_takeoff_landing(IMU, PWM, ESC, ATTITUDE, XKF1, VIBE, num_motors)
+function [IMU, PWM, ATTITUDE, XKF1, VIBE] = remove_takeoff_landing(IMU, PWM, ATTITUDE, XKF1, VIBE, num_motors)
     idxcut = sum(PWM, 2) < 1450 * size(PWM, 2);
     IMU.GYR_sync(idxcut, :) = [];
     IMU.ACC_sync(idxcut, :) = [];
     PWM(idxcut, :) = [];
-    for k = 1:num_motors
-        ESC.("RPM" + num2str(k-1) + "_sync")(idxcut, :) = [];
-        ESC.("CURR" + num2str(k-1) + "_sync")(idxcut, :) = [];
-    end
+    % for k = 1:num_motors
+    %     ESC.("RPM" + num2str(k-1) + "_sync")(idxcut, :) = [];
+    %     ESC.("CURR" + num2str(k-1) + "_sync")(idxcut, :) = [];
+    % end
     ATTITUDE.ROLL_sync(idxcut, :) = [];
     ATTITUDE.PITCH_sync(idxcut, :) = [];
     ATTITUDE.YAW_sync(idxcut, :) = [];
@@ -163,15 +156,15 @@ function [IMU, PWM, ESC, ATTITUDE, XKF1, VIBE] = remove_takeoff_landing(IMU, PWM
     VIBE.ACC_sync(idxcut, :) = [];
 end
 
-function [IMU, PWM, ESC, ATTITUDE, XKF1, VIBE] = remove_edges(IMU, PWM, ESC, ATTITUDE, XKF1, VIBE, num_motors, Hz)
+function [IMU, PWM, ATTITUDE, XKF1, VIBE] = remove_edges(IMU, PWM, ATTITUDE, XKF1, VIBE, num_motors, Hz)
     idxcut = 2 * Hz;
     IMU.GYR_sync(1:idxcut, :) = [];
     IMU.ACC_sync(1:idxcut, :) = [];
     PWM(1:idxcut, :) = [];
-    for k = 1:num_motors
-        ESC.("RPM" + num2str(k-1) + "_sync")(1:idxcut, :) = [];
-        ESC.("CURR" + num2str(k-1) + "_sync")(1:idxcut, :) = [];
-    end
+    % for k = 1:num_motors
+    %     ESC.("RPM" + num2str(k-1) + "_sync")(1:idxcut, :) = [];
+    %     ESC.("CURR" + num2str(k-1) + "_sync")(1:idxcut, :) = [];
+    % end
     ATTITUDE.ROLL_sync(1:idxcut, :) = [];
     ATTITUDE.PITCH_sync(1:idxcut, :) = [];
     ATTITUDE.YAW_sync(1:idxcut, :) = [];
@@ -189,10 +182,10 @@ function [IMU, PWM, ESC, ATTITUDE, XKF1, VIBE] = remove_edges(IMU, PWM, ESC, ATT
     IMU.GYR_sync(end-idxcut+1:end, :) = [];
     IMU.ACC_sync(end-idxcut+1:end, :) = [];
     PWM(end-idxcut+1:end, :) = [];
-    for k = 1:num_motors
-        ESC.("RPM" + num2str(k-1) + "_sync")(end-idxcut+1:end, :) = [];
-        ESC.("CURR" + num2str(k-1) + "_sync")(end-idxcut+1:end, :) = [];
-    end
+    % for k = 1:num_motors
+    %     ESC.("RPM" + num2str(k-1) + "_sync")(end-idxcut+1:end, :) = [];
+    %     ESC.("CURR" + num2str(k-1) + "_sync")(end-idxcut+1:end, :) = [];
+    % end
     ATTITUDE.ROLL_sync(end-idxcut+1:end, :) = [];
     ATTITUDE.PITCH_sync(end-idxcut+1:end, :) = [];
     ATTITUDE.YAW_sync(end-idxcut+1:end, :) = [];
@@ -208,10 +201,10 @@ function [IMU, PWM, ESC, ATTITUDE, XKF1, VIBE] = remove_edges(IMU, PWM, ESC, ATT
     VIBE.ACC_sync(end-idxcut+1:end, :) = [];
 end
 
-function synchronize = save_processed_data(IMU, PWM, ESC, ATTITUDE, XKF1, VIBE)
+function synchronize = save_processed_data(IMU, PWM, ATTITUDE, XKF1, VIBE)
     synchronize.IMU = IMU;
-    synchronize.PWM_sync = PWM;
-    synchronize.ESC = ESC;
+    synchronize.PWM = PWM;
+    % synchronize.ESC = ESC;
     synchronize.ATTITUDE = ATTITUDE;
     synchronize.XKF1 = XKF1;
     synchronize.VIBE = VIBE;

@@ -1,0 +1,123 @@
+function dataTable = datatable_raw(datalist, nFiles, Hz)
+
+dataTable = table('Size', [nFiles 0]);
+
+for i = 1:nFiles
+    data = datalist{i};
+    acc_x = data.IMU.ACC(:,1);
+    acc_y = data.IMU.ACC(:,2);
+    acc_z = data.IMU.ACC(:,3);
+    gyr_x = data.IMU.GYR(:,1);
+    gyr_y = data.IMU.GYR(:,2);
+    gyr_z = data.IMU.GYR(:,3);
+    pwm_1 = data.PWM(:,1);
+    pwm_2 = data.PWM(:,2);
+    pwm_3 = data.PWM(:,3);
+    pwm_4 = data.PWM(:,4);
+    pwm_5 = data.PWM(:,5);
+    pwm_6 = data.PWM(:,6);
+    esc_1 = data.ESC.RPM0(:);
+    esc_2 = data.ESC.RPM1(:);
+    esc_3 = data.ESC.RPM2(:);
+    esc_4 = data.ESC.RPM3(:);
+    esc_5 = data.ESC.RPM4(:);
+    esc_6 = data.ESC.RPM5(:);
+    cur_1 = data.ESC.CURR0(:);
+    cur_2 = data.ESC.CURR1(:);
+    cur_3 = data.ESC.CURR2(:);
+    cur_4 = data.ESC.CURR3(:);
+    cur_5 = data.ESC.CURR4(:);
+    cur_6 = data.ESC.CURR5(:);
+    roll = data.ATTITUDE.ROLL(:);
+    pitch = data.ATTITUDE.PITCH(:);
+    yaw = data.ATTITUDE.YAW(:);
+    roll_des = data.ATTITUDE.DesROLL(:);
+    pitch_des = data.ATTITUDE.DesPITCH(:);
+    yaw_des = data.ATTITUDE.DesYAW(:);
+    vn = data.XKF1.VN(:);
+    ve = data.XKF1.VE(:);
+    vd = data.XKF1.VD(:);
+    vibe_x = data.VIBE.ACC(:,1);
+    vibe_y = data.VIBE.ACC(:,2);
+    vibe_z = data.VIBE.ACC(:,3);
+    
+    % Conversion to timetable
+    acc_x = array2timetable(acc_x,'SampleRate',Hz);
+    acc_y = array2timetable(acc_y,'SampleRate',Hz);
+    acc_z = array2timetable(acc_z,'SampleRate',Hz);
+    gyr_x = array2timetable(gyr_x,'SampleRate',Hz);
+    gyr_y = array2timetable(gyr_y,'SampleRate',Hz);
+    gyr_z = array2timetable(gyr_z,'SampleRate',Hz);
+    pwm_1 = array2timetable(pwm_1,'SampleRate',Hz);
+    pwm_2 = array2timetable(pwm_2,'SampleRate',Hz);
+    pwm_3 = array2timetable(pwm_3,'SampleRate',Hz);
+    pwm_4 = array2timetable(pwm_4,'SampleRate',Hz);
+    pwm_5 = array2timetable(pwm_5,'SampleRate',Hz);
+    pwm_6 = array2timetable(pwm_6,'SampleRate',Hz);
+    esc_1 = array2timetable(esc_1,'SampleRate',Hz);
+    esc_2 = array2timetable(esc_2,'SampleRate',Hz);
+    esc_3 = array2timetable(esc_3,'SampleRate',Hz);
+    esc_4 = array2timetable(esc_4,'SampleRate',Hz);
+    esc_5 = array2timetable(esc_5,'SampleRate',Hz);
+    esc_6 = array2timetable(esc_6,'SampleRate',Hz);
+    cur_1 = array2timetable(cur_1,'SampleRate',Hz);
+    cur_2 = array2timetable(cur_2,'SampleRate',Hz);
+    cur_3 = array2timetable(cur_3,'SampleRate',Hz);
+    cur_4 = array2timetable(cur_4,'SampleRate',Hz);
+    cur_5 = array2timetable(cur_5,'SampleRate',Hz);
+    cur_6 = array2timetable(cur_6,'SampleRate',Hz);
+    roll = array2timetable(roll,'SampleRate',Hz);
+    pitch = array2timetable(pitch,'SampleRate',Hz);
+    yaw = array2timetable(yaw,'SampleRate',Hz);
+    roll_des = array2timetable(roll_des,'SampleRate',Hz);
+    pitch_des = array2timetable(pitch_des,'SampleRate',Hz);
+    yaw_des = array2timetable(yaw_des,'SampleRate',Hz);
+    vn = array2timetable(vn,'SampleRate',Hz);
+    ve = array2timetable(ve,'SampleRate',Hz);
+    vd = array2timetable(vd,'SampleRate',Hz);
+    vibe_x = array2timetable(vibe_x,'SampleRate',Hz);
+    vibe_y = array2timetable(vibe_y,'SampleRate',Hz);
+    vibe_z = array2timetable(vibe_z,'SampleRate',Hz);
+    
+    % Ensemble
+    dataTable.acc_x(i) = {acc_x};
+    dataTable.acc_y(i) = {acc_y};
+    dataTable.acc_z(i) = {acc_z};
+    dataTable.gyr_x(i) = {gyr_x};
+    dataTable.gyr_y(i) = {gyr_y};
+    dataTable.gyr_z(i) = {gyr_z};
+    dataTable.pwm_1(i) = {pwm_1};
+    dataTable.pwm_2(i) = {pwm_2};
+    dataTable.pwm_3(i) = {pwm_3};
+    dataTable.pwm_4(i) = {pwm_4};
+    dataTable.pwm_5(i) = {pwm_5};
+    dataTable.pwm_6(i) = {pwm_6};
+    dataTable.esc_1(i) = {esc_1};
+    dataTable.esc_2(i) = {esc_2};
+    dataTable.esc_3(i) = {esc_3};
+    dataTable.esc_4(i) = {esc_4};
+    dataTable.esc_5(i) = {esc_5};
+    dataTable.esc_6(i) = {esc_6};
+    dataTable.cur_1(i) = {cur_1};
+    dataTable.cur_2(i) = {cur_2};
+    dataTable.cur_3(i) = {cur_3};
+    dataTable.cur_4(i) = {cur_4};
+    dataTable.cur_5(i) = {cur_5};
+    dataTable.cur_6(i) = {cur_6};
+    dataTable.roll(i) = {roll};
+    dataTable.pitch(i) = {pitch};
+    dataTable.yaw(i) = {yaw};
+    dataTable.roll_des(i) = {roll_des};
+    dataTable.pitch_des(i) = {pitch_des};
+    dataTable.yaw_des(i) = {yaw_des};
+    dataTable.vn(i) = {vn};
+    dataTable.ve(i) = {ve};
+    dataTable.vd(i) = {vd};
+    dataTable.vibe_x(i) = {vibe_x};
+    dataTable.vibe_y(i) = {vibe_y};
+    dataTable.vibe_z(i) = {vibe_z};
+end
+
+end    
+
+

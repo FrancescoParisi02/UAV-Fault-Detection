@@ -8,6 +8,20 @@ folderPath = 'dataset';  % Adatta questo percorso alla tua cartella
 filelist = dir(fullfile(folderPath, '*.mat'));
 filelist = {filelist.name};
 
+% Faults
+noFault = startsWith(filelist, 'NO');
+fault_5 = endsWith(filelist, '5.mat');
+fault_10 = endsWith(filelist, '10.mat');
+
+% Priorità
+priority(fault_5) = 2; % Default priority (middle)
+priority(noFault) = 1;   % Highest priority
+priority(fault_10) = 3; % Lowest priority
+
+% Ordine in base al fault
+[~, sortIdx] = sort(priority);
+filelist = filelist(sortIdx);
+
 % Conta il numero di file
 nFiles = length(filelist);
 
