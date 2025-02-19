@@ -39,14 +39,20 @@ end
 dataTable = datatable(datalist, nFiles, Hz);
 
 %% Definition of the fault codes
-fault = [0 0 0 0 0 0 5 5 5 5 5 5 10 10 10 10 10 10];
-fault_cat = categorical(fault');
-dataTable.faultCode(:) = fault_cat;
+fault_multi = [0 0 0 0 0 0 5 5 5 5 5 5 10 10 10 10 10 10];
+fault_binary = [0 0 0 0 0 0 1 1 1 1 1 1 1 1 1 1 1 1];
+fault_motor = [0 0 0 0 0 0 1 2 3 4 5 6 1 2 3 4 5 6];
+fault_cat_multi = categorical(fault_multi');
+fault_cat_binary = categorical(fault_binary');
+fault_cat_motor = categorical(fault_motor');
+dataTable.faultCode_multi(:) = fault_cat_multi;
+dataTable.faultCode_binary(:) = fault_cat_binary;
+dataTable.faultCode_motor(:) = fault_cat_motor;
 
 fprintf("Creazione delle feature in corso...")
 
 %% Computation of Diagnostic Feature Designer features
-[feature_Table,data_feature_Table] = diagnosticFeatures(dataTable);
+[feature_Table,data_feature_Table] = diagnosticFeaturesFinal(dataTable);
 
 fprintf("Pulizia delle feature...")
 
@@ -78,7 +84,7 @@ load data_feature_Table_zoh.mat
 
 %%
 
-fprintf("Passaggio della tabella di traning al classificatore...")
-
-classificationLearner(feature_Table_Train,'faultCode');
+% fprintf("Passaggio della tabella di traning al classificatore...")
+% 
+% classificationLearner(feature_Table_Train,'faultCode');
 

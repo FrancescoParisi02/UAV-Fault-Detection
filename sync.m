@@ -77,9 +77,9 @@ function XKF1 = average_xkf1_data(XKF1_0, XKF1_1)
     XKF1.ROLL = (unwrap(XKF1_0(1:n, 4) / 360 * 2 * pi) + unwrap(XKF1_1(1:n, 4) / 360 * 2 * pi)) / 2;
     XKF1.PITCH = (unwrap(XKF1_0(1:n, 5) / 360 * 2 * pi) + unwrap(XKF1_1(1:n, 5) / 360 * 2 * pi)) / 2;
     XKF1.YAW = (unwrap(XKF1_0(1:n, 6) / 360 * 2 * pi) + unwrap(XKF1_1(1:n, 6) / 360 * 2 * pi)) / 2;
-    XKF1.VN = (XKF1_0(1:n, 7) + XKF1_1(1:n, 7)) / 2;
-    XKF1.VE = (XKF1_0(1:n, 8) + XKF1_1(1:n, 8)) / 2;
-    XKF1.VD = (XKF1_0(1:n, 9) + XKF1_1(1:n, 9)) / 2;
+    % XKF1.VN = (XKF1_0(1:n, 7) + XKF1_1(1:n, 7)) / 2;
+    % XKF1.VE = (XKF1_0(1:n, 8) + XKF1_1(1:n, 8)) / 2;
+    % XKF1.VD = (XKF1_0(1:n, 9) + XKF1_1(1:n, 9)) / 2;
 end
 
 function VIBE = average_vibe_data(VIBE_0, VIBE_1, VIBE_2)
@@ -126,9 +126,9 @@ function [IMU, PWM, ATTITUDE, XKF1, VIBE] = synchronize_data(IMU, PWM, ATTITUDE,
     XKF1.ROLL_sync = ZOHmatrix(XKF1.ROLL, seconds(Time.XKF1), Time.timesout);
     XKF1.PITCH_sync = ZOHmatrix(XKF1.PITCH, seconds(Time.XKF1), Time.timesout);
     XKF1.YAW_sync = ZOHmatrix(XKF1.YAW, seconds(Time.XKF1), Time.timesout);
-    XKF1.VN_sync = ZOHmatrix(XKF1.VN, seconds(Time.XKF1), Time.timesout);
-    XKF1.VE_sync = ZOHmatrix(XKF1.VE, seconds(Time.XKF1), Time.timesout);
-    XKF1.VD_sync = ZOHmatrix(XKF1.VD, seconds(Time.XKF1), Time.timesout);
+    % XKF1.VN_sync = ZOHmatrix(XKF1.VN, seconds(Time.XKF1), Time.timesout);
+    % XKF1.VE_sync = ZOHmatrix(XKF1.VE, seconds(Time.XKF1), Time.timesout);
+    % XKF1.VD_sync = ZOHmatrix(XKF1.VD, seconds(Time.XKF1), Time.timesout);
     VIBE.ACC_sync = ZOHmatrix(VIBE.ACC, seconds(Time.VIBE), Time.timesout);
 end
 
@@ -150,9 +150,9 @@ function [IMU, PWM, ATTITUDE, XKF1, VIBE] = remove_takeoff_landing(IMU, PWM, ATT
     XKF1.ROLL_sync(idxcut, :) = [];
     XKF1.PITCH_sync(idxcut, :) = [];
     XKF1.YAW_sync(idxcut, :) = [];
-    XKF1.VN_sync(idxcut, :) = [];
-    XKF1.VE_sync(idxcut, :) = [];
-    XKF1.VD_sync(idxcut, :) = [];
+    % XKF1.VN_sync(idxcut, :) = [];
+    % XKF1.VE_sync(idxcut, :) = [];
+    % XKF1.VD_sync(idxcut, :) = [];
     VIBE.ACC_sync(idxcut, :) = [];
 end
 
@@ -174,9 +174,9 @@ function [IMU, PWM, ATTITUDE, XKF1, VIBE] = remove_edges(IMU, PWM, ATTITUDE, XKF
     XKF1.ROLL_sync(1:idxcut, :) = [];
     XKF1.PITCH_sync(1:idxcut, :) = [];
     XKF1.YAW_sync(1:idxcut, :) = [];
-    XKF1.VN_sync(1:idxcut, :) = [];
-    XKF1.VE_sync(1:idxcut, :) = [];
-    XKF1.VD_sync(1:idxcut, :) = [];
+    % XKF1.VN_sync(1:idxcut, :) = [];
+    % XKF1.VE_sync(1:idxcut, :) = [];
+    % XKF1.VD_sync(1:idxcut, :) = [];
     VIBE.ACC_sync(1:idxcut, :) = [];
 
     IMU.GYR_sync(end-idxcut+1:end, :) = [];
@@ -195,9 +195,9 @@ function [IMU, PWM, ATTITUDE, XKF1, VIBE] = remove_edges(IMU, PWM, ATTITUDE, XKF
     XKF1.ROLL_sync(end-idxcut+1:end, :) = [];
     XKF1.PITCH_sync(end-idxcut+1:end, :) = [];
     XKF1.YAW_sync(end-idxcut+1:end, :) = [];
-    XKF1.VN_sync(end-idxcut+1:end, :) = [];
-    XKF1.VE_sync(end-idxcut+1:end, :) = [];
-    XKF1.VD_sync(end-idxcut+1:end, :) = [];
+    % XKF1.VN_sync(end-idxcut+1:end, :) = [];
+    % XKF1.VE_sync(end-idxcut+1:end, :) = [];
+    % XKF1.VD_sync(end-idxcut+1:end, :) = [];
     VIBE.ACC_sync(end-idxcut+1:end, :) = [];
 end
 
