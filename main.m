@@ -84,6 +84,8 @@ load data_feature_Table_zoh.mat
 
 %%
 
+fprintf("Dati sincronizzati!")
+
 % fprintf("Passaggio della tabella di traning al classificatore...")
 % 
 % classificationLearner(feature_Table_Train,'faultCode');
