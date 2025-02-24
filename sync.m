@@ -248,3 +248,22 @@ function [in1, in2] = compare(in1, in2)
         error("Inputs to be averaged do not share the same timestamps.");
     end
 end
+
+function index = ZOHrow(times, t)
+    index = find(times <= t, 1, 'last'); % Find the last occurrence
+    if isempty(index)
+        index = 1; % Default to the first index if no valid time is found
+    end
+end
+
+function varout = ZOHmatrix(varin, timesin, timesout)
+    numVars = size(varin, 2); % Number of columns (variables)
+    numTimesOut = length(timesout);
+    varout = zeros(numTimesOut, numVars); % Initialize output matrix
+
+    % Apply ZOH for each time step in timesout
+    for i = 1:numTimesOut
+        holdIndex = ZOHrow(timesin, timesout(i)); % Find the last known sample
+        varout(i, :) = varin(holdIndex, :); % Hold value from that index
+    end
+end
