@@ -1,6 +1,6 @@
 function synchronize = sync(file,Hz)
 
-fprintf("Caricamento dati da %s...\n", file);
+fprintf("Loading data from %s...\n", file);
 
     % Load data from the file
     load(file);
@@ -10,7 +10,7 @@ fprintf("Caricamento dati da %s...\n", file);
     [IMU_0, IMU_1, IMU_2] = compare3(IMU_0, IMU_1, IMU_2);
     [XKF1_0, XKF1_1] = compare(XKF1_0, XKF1_1);
     [VIBE_0, VIBE_1, VIBE_2] = compare3(VIBE_0, VIBE_1, VIBE_2);
-    ESC_data = {ESC_0, ESC_1, ESC_2, ESC_3, ESC_4, ESC_5};
+    %ESC_data = {ESC_0, ESC_1, ESC_2, ESC_3, ESC_4, ESC_5};
     % Average IMU data
     IMU = average_imu_data(IMU_0, IMU_1, IMU_2);
 
@@ -30,18 +30,17 @@ fprintf("Caricamento dati da %s...\n", file);
     VIBE = average_vibe_data(VIBE_0, VIBE_1, VIBE_2);
 
     % Extract and synchronize time data
-    Time = extract_and_sync_time(IMU_0, RCOU, ATT, XKF1_0, VIBE_0, num_motors,ESC_data, Hz);
+    Time = extract_and_sync_time(IMU_0, RCOU, ATT, XKF1_0, VIBE_0, Hz);
 
     % Synchronize data using Zero-Order Hold (ZOH)
-    [IMU, PWM, ATTITUDE, XKF1, VIBE] = synchronize_data(IMU, PWM, ATTITUDE, XKF1, VIBE, Time, num_motors, Hz);
+    [IMU, PWM, ATTITUDE, XKF1, VIBE] = synchronize_data(IMU, PWM, ATTITUDE, XKF1, VIBE, Time);
 
     % Remove takeoff and landing phases
-    [IMU, PWM, ATTITUDE, XKF1, VIBE] = remove_takeoff_landing(IMU, PWM, ATTITUDE, XKF1, VIBE, num_motors);
+    [IMU, PWM, ATTITUDE, XKF1, VIBE] = remove_takeoff_landing(IMU, PWM, ATTITUDE, XKF1, VIBE);
 
     % Remove first and last 2 seconds of data
-    [IMU, PWM, ATTITUDE, XKF1, VIBE] = remove_edges(IMU, PWM, ATTITUDE, XKF1, VIBE, num_motors, Hz);
+    [IMU, PWM, ATTITUDE, XKF1, VIBE] = remove_edges(IMU, PWM, ATTITUDE, XKF1, VIBE, Hz);
 
-    % Save the processed data
     synchronize = save_processed_data(IMU, PWM, ATTITUDE, XKF1, VIBE);
 end
 
@@ -89,7 +88,7 @@ function VIBE = average_vibe_data(VIBE_0, VIBE_1, VIBE_2)
                 (VIBE_0(1:n, 6) + VIBE_1(1:n, 6) + VIBE_2(1:n, 6)) / 3];
 end
 
-function Time = extract_and_sync_time(IMU_0, RCOU, ATT, XKF1_0, VIBE_0, num_motors,ESC_data, Hz)
+function Time = extract_and_sync_time(IMU_0, RCOU, ATT, XKF1_0, VIBE_0, Hz)
     Time.IMU = seconds(IMU_0(:, 2) / 1e6);
     Time.PWM = seconds(RCOU(:, 2) / 1e6);
     % for k = 1:num_motors
@@ -109,7 +108,7 @@ function Time = extract_and_sync_time(IMU_0, RCOU, ATT, XKF1_0, VIBE_0, num_moto
     Time.timesout = timesout;
 end
 
-function [IMU, PWM, ATTITUDE, XKF1, VIBE] = synchronize_data(IMU, PWM, ATTITUDE, XKF1, VIBE, Time, num_motors, Hz)
+function [IMU, PWM, ATTITUDE, XKF1, VIBE] = synchronize_data(IMU, PWM, ATTITUDE, XKF1, VIBE, Time)
     IMU.GYR_sync = ZOHmatrix(IMU.GYR, seconds(Time.IMU), Time.timesout);
     IMU.ACC_sync = ZOHmatrix(IMU.ACC, seconds(Time.IMU), Time.timesout);
     PWM = ZOHmatrix(PWM, seconds(Time.PWM), Time.timesout);
@@ -132,7 +131,7 @@ function [IMU, PWM, ATTITUDE, XKF1, VIBE] = synchronize_data(IMU, PWM, ATTITUDE,
     VIBE.ACC_sync = ZOHmatrix(VIBE.ACC, seconds(Time.VIBE), Time.timesout);
 end
 
-function [IMU, PWM, ATTITUDE, XKF1, VIBE] = remove_takeoff_landing(IMU, PWM, ATTITUDE, XKF1, VIBE, num_motors)
+function [IMU, PWM, ATTITUDE, XKF1, VIBE] = remove_takeoff_landing(IMU, PWM, ATTITUDE, XKF1, VIBE)
     idxcut = sum(PWM, 2) < 1450 * size(PWM, 2);
     IMU.GYR_sync(idxcut, :) = [];
     IMU.ACC_sync(idxcut, :) = [];
@@ -156,7 +155,7 @@ function [IMU, PWM, ATTITUDE, XKF1, VIBE] = remove_takeoff_landing(IMU, PWM, ATT
     VIBE.ACC_sync(idxcut, :) = [];
 end
 
-function [IMU, PWM, ATTITUDE, XKF1, VIBE] = remove_edges(IMU, PWM, ATTITUDE, XKF1, VIBE, num_motors, Hz)
+function [IMU, PWM, ATTITUDE, XKF1, VIBE] = remove_edges(IMU, PWM, ATTITUDE, XKF1, VIBE, Hz)
     idxcut = 2 * Hz;
     IMU.GYR_sync(1:idxcut, :) = [];
     IMU.ACC_sync(1:idxcut, :) = [];
@@ -210,6 +209,7 @@ function synchronize = save_processed_data(IMU, PWM, ATTITUDE, XKF1, VIBE)
     synchronize.VIBE = VIBE;
 end
 
+%% Compare between three timestamps
 function [in1, in2, in3] = compare3(in1, in2, in3)
 
     % Get common timestamps (columns 2 is TimeUS)
@@ -224,46 +224,41 @@ function [in1, in2, in3] = compare3(in1, in2, in3)
     in2 = filter_by_timestamp(in2, common_timestamps);
     in3 = filter_by_timestamp(in3, common_timestamps);
 
-    % Verify synchronization
     if ~(isequal(in1(:,2), in2(:,2)) && isequal(in1(:,2), in3(:,2)))
         error("Inputs to be averaged do not share the same timestamps.");
     end
 end
-
+%% Compare between two timestamps
 function [in1, in2] = compare(in1, in2)
-    % Crea un array logico che indica se ogni timestamp in in1 è presente in in2
     idx_in1 = ismember(in1(:, 2), in2(:, 2));
     
-    % Rimuove le righe in in1 che non hanno un corrispondente timestamp in in2
     in1 = in1(idx_in1, :);
     
-    % Crea un array logico che indica se ogni timestamp in in2 è presente in in1
     idx_in2 = ismember(in2(:, 2), in1(:, 2));
     
-    % Rimuove le righe in in2 che non hanno un corrispondente timestamp in in1
     in2 = in2(idx_in2, :);
     
-    % Verifica che i timestamp nelle colonne 2 siano uguali
     if ~isequal(in1(:, 2), in2(:, 2))
         error("Inputs to be averaged do not share the same timestamps.");
     end
 end
 
+%% ZOH
 function index = ZOHrow(times, t)
-    index = find(times <= t, 1, 'last'); % Find the last occurrence
+    index = find(times <= t, 1, 'last');
     if isempty(index)
         index = 1; % Default to the first index if no valid time is found
     end
 end
 
 function varout = ZOHmatrix(varin, timesin, timesout)
-    numVars = size(varin, 2); % Number of columns (variables)
+    numVars = size(varin, 2);
     numTimesOut = length(timesout);
-    varout = zeros(numTimesOut, numVars); % Initialize output matrix
+    varout = zeros(numTimesOut, numVars);
 
     % Apply ZOH for each time step in timesout
     for i = 1:numTimesOut
-        holdIndex = ZOHrow(timesin, timesout(i)); % Find the last known sample
-        varout(i, :) = varin(holdIndex, :); % Hold value from that index
+        holdIndex = ZOHrow(timesin, timesout(i));
+        varout(i, :) = varin(holdIndex, :);
     end
 end
