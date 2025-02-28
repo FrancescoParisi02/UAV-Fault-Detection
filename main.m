@@ -45,12 +45,12 @@ dataTable.faultCode_multi(:) = fault_cat_multi;
 dataTable.faultCode_binary(:) = fault_cat_binary;
 dataTable.faultCode_motor(:) = fault_cat_motor;
 
-fprintf("Extracting the features...")
+fprintf("Extracting the features...\n")
 
 %% Computation of Diagnostic Feature Designer features
 [feature_Table,data_feature_Table] = diagnosticFeaturesFinal(dataTable);
 
-fprintf("Cleaning the features...")
+fprintf("Cleaning the features...\n")
 
 %% Clean features by removing NaNs from features
 feature_Table=standardizeMissing(feature_Table,{-Inf,Inf});
@@ -80,7 +80,7 @@ save data_feature_Table_zoh.mat dataTable data_feature_Table feature_Table featu
 clear all
 load data_feature_Table_zoh.mat
 
-fprintf("Done!")
+fprintf("Done!\n")
 
 % fprintf("Passaggio della tabella di traning al classificatore...")
 % 
